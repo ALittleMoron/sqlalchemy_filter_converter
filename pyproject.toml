@@ -126,7 +126,7 @@ dev = [
 
 [project]
 name = "sqlalchemy_filter_converter"
-version = "1.0.0"
+version = "1.1.0"
 description = "SQLAlchemy filter converters."
 authors = [{ name = "Dmitriy Lunev", email = "dima.lunev14@gmail.com" }]
 requires-python = ">=3.11"
