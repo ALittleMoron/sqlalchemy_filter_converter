@@ -5,8 +5,7 @@
 
 ## For what?
 
-I made this project to avoid copy-pasting with utils in my projects. I was aiming to simplify
-working with sqlalchemy, FastAPI and other libraries.
+I made this package to use filters from query parameters in my applications.
 
 ## Install
 
