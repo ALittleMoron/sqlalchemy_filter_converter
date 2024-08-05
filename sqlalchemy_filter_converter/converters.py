@@ -15,9 +15,9 @@ from collections.abc import Sequence
 from inspect import signature
 from typing import TYPE_CHECKING, Any, ClassVar, final
 
-from dev_utils.core.abstract import Abstract, abstract_class_property
-from dev_utils.sqlalchemy.utils import get_sqlalchemy_attribute, get_valid_field_names
+from dev_utils.abstract import Abstract, abstract_class_property
 from sqlalchemy.sql.elements import ColumnElement
+from sqlalchemy_dev_utils import get_sqlalchemy_attribute, get_valid_field_names
 
 from sqlalchemy_filter_converter import operators as custom_operator
 from sqlalchemy_filter_converter.exc import FilterError

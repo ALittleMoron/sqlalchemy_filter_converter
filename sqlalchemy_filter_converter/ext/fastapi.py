@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, Any, Protocol
 
-from dev_utils.core.guards import all_dict_keys_are_str
+from dev_utils.guards import all_dict_keys_are_str
 from fastapi import Depends, HTTPException, status
 from fastapi.encoders import jsonable_encoder
 from fastapi.params import Query
@@ -152,7 +152,7 @@ def advanced_converter_depends(model: "type[DeclarativeBase]") -> "GetSQLFilters
     from typing import Sequence
 
     from sqlalchemy import ColumnElement
-    from dev_utils.sqlalchemy.filters.ext.fastapi import advanced_converter_depends
+    from sqlalchemy_filter_converter.ext.fastapi import advanced_converter_depends
 
     from myapp.models import MyModel
 
@@ -183,7 +183,7 @@ def simple_converter_depends(model: "type[DeclarativeBase]") -> "GetSQLFiltersDe
     from typing import Sequence
 
     from sqlalchemy import ColumnElement
-    from dev_utils.sqlalchemy.filters.ext.fastapi import simple_converter_depends
+    from sqlalchemy_filter_converter.ext.fastapi import simple_converter_depends
 
     from myapp.models import MyModel
 
@@ -214,7 +214,7 @@ def django_converter_depends(model: "type[DeclarativeBase]") -> "GetSQLFiltersDe
     from typing import Sequence
 
     from sqlalchemy import ColumnElement
-    from dev_utils.sqlalchemy.filters.ext.fastapi import django_converter_depends
+    from sqlalchemy_filter_converter.ext.fastapi import django_converter_depends
 
     from myapp.models import MyModel
 

@@ -39,7 +39,7 @@ class OperatorFunctionProtocol(Protocol):  # noqa: D101 pragma: no cover
 # =================================================================
 
 
-def do_nothing(*args: Any, **kwargs: Any) -> None:  # noqa: ANN401, ARG001, F401, RUF100
+def do_nothing(*args: Any, **kwargs: Any) -> None:  # noqa: ANN401, ARG001, F401, RUF100, F841
     """Real do nothing function.
 
     Return None, receive any parameters.
