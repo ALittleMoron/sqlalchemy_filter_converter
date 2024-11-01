@@ -3,7 +3,10 @@
 Contains types and structures, represents its types.
 """
 
-from typing import Any, Literal, NotRequired, TypedDict, get_args
+import enum
+from typing import Any, Literal, NotRequired, Protocol, TypedDict, get_args
+
+from sqlalchemy import ColumnElement
 
 DjangoOperatorsLiteral = Literal[
     "exact",
@@ -44,6 +47,11 @@ FilterConverterStrategiesLiteral = Literal["simple", "advanced", "django"]
 FilterConverterStrategiesSet: set[FilterConverterStrategiesLiteral] = set(
     get_args(FilterConverterStrategiesLiteral),
 )
+IsValid = bool
+Message = str
+FilterDict = dict[str, Any]
+SQLAlchemyFilter = ColumnElement[bool]
+NestedFilterNames = set[str]
 
 
 class OperatorFilterDict(TypedDict):
@@ -52,3 +60,18 @@ class OperatorFilterDict(TypedDict):
     field: str
     value: Any
     operator: NotRequired[AdvancedOperatorsLiteral]
+
+
+class OperatorFunctionProtocol(Protocol):  # pragma: no cover
+    def __call__(
+        self,
+        a: Any,
+        b: Any,
+        *,
+        subproduct_use: bool = False,
+    ) -> Any: ...
+
+
+LookupMapping = dict[enum.Enum | str, OperatorFunctionProtocol]
+LookupMappingWithNested = dict[enum.Enum | str, tuple[OperatorFunctionProtocol, NestedFilterNames]]
+AnyLookupMapping = LookupMapping | LookupMappingWithNested

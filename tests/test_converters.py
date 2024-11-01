@@ -6,7 +6,7 @@ import pytest
 from sqlalchemy import Date, Time, cast, extract, func
 
 from sqlalchemy_filter_converter import (
-    AdvancedOperatorFilterConverter,
+    AdvancedFilterConverter,
     BaseFilterConverter,
     DjangoLikeFilterConverter,
     SimpleFilterConverter,
@@ -47,15 +47,15 @@ _time_future = (now + datetime.timedelta(hours=1)).time()
         (
             SimpleFilterConverter,
             {"full_name": "abc"},
-            [str(MyModel.full_name == "abc")],  # type: ignore reportUnknownMemberType
+            [str(MyModel.full_name == "abc")],  # type: ignore[reportUnknownMemberType]
         ),
         (
-            AdvancedOperatorFilterConverter,
+            AdvancedFilterConverter,
             [{"field": "id", "value": 25}, {"field": "name", "value": "abc"}],
             [str(MyModel.id == 25), str(MyModel.name == "abc")],  # noqa: PLR2004
         ),
         (
-            AdvancedOperatorFilterConverter,
+            AdvancedFilterConverter,
             [
                 {"field": "id", "value": 25, "operator": "="},
                 {"field": "id", "value": 25, "operator": ">"},
@@ -355,13 +355,37 @@ def test_converter(
     filters: Any,  # noqa: ANN401
     expected_result: list[Any],
 ) -> None:
-    converted_filters = converter_class.convert(MyModel, filters)
+    converted_filters = converter_class().convert(MyModel, filters)
     if filters is not None:
         assert len(converted_filters) == len(filters)
     else:
         assert len(converted_filters) == 0
     for index, _filter in enumerate(converted_filters):
         assert str(_filter) == str(expected_result[index])
+
+
+def test_simple_converter_with_specific_column_mapping() -> None:
+    converted_filters = SimpleFilterConverter(
+        specific_column_mapping={"my_very_cool_custom_filter_column": MyModel.id}
+    ).convert(MyModel, {"my_very_cool_custom_filter_column": 25})
+    assert len(converted_filters) == 1
+    assert str(converted_filters[0]) == str(MyModel.id == 25)
+
+
+def test_advanced_converter_with_specific_column_mapping() -> None:
+    converted_filters = AdvancedFilterConverter(
+        specific_column_mapping={"my_very_cool_custom_filter_column": MyModel.id}
+    ).convert(MyModel, {"field": "my_very_cool_custom_filter_column", "value": 25})
+    assert len(converted_filters) == 1
+    assert str(converted_filters[0]) == str(MyModel.id == 25)
+
+
+def test_django_like_converter_with_specific_column_mapping() -> None:
+    converted_filters = DjangoLikeFilterConverter(
+        specific_column_mapping={"my_very_cool_custom_filter_column": MyModel.id}
+    ).convert(MyModel, {"my_very_cool_custom_filter_column__exact": 25})
+    assert len(converted_filters) == 1
+    assert str(converted_filters[0]) == str(MyModel.id == 25)
 
 
 @pytest.mark.parametrize(
@@ -372,11 +396,11 @@ def test_converter(
             {"wrong_field_name": 25},
         ),
         (
-            AdvancedOperatorFilterConverter,
+            AdvancedFilterConverter,
             {"field": "wrong_field_name", "value": "abc"},
         ),
         (
-            AdvancedOperatorFilterConverter,
+            AdvancedFilterConverter,
             {"no_field_key": "wrong_field_name"},
         ),
         (
@@ -402,9 +426,17 @@ def test_filter_not_valid(
     filters: Any,  # noqa: ANN401
 ) -> None:
     with pytest.raises(FilterError):
-        converter_class.convert(MyModel, filters)
+        converter_class().convert(MyModel, filters)
 
 
 def test_advanced_filter_never_situation() -> None:
     with pytest.raises(FilterError, match=""):
-        AdvancedOperatorFilterConverter._convert_filter(MyModel, {"abc": "abc"})  # type: ignore reportPrivateUsage # noqa: SLF001
+        AdvancedFilterConverter()._convert_filter(MyModel, {"abc": "abc"})  # type: ignore[reportPrivateUsage] # noqa: SLF001
+
+
+def test_simple_get_lookup_mapping_error() -> None:
+    with pytest.raises(
+        ValueError,
+        match="SimpleFilterConverter should not have any lookup mapping due to it inner logic.",
+    ):
+        SimpleFilterConverter()._get_lookup_mapping()

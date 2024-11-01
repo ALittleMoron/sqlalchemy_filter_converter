@@ -7,10 +7,10 @@ from sqlalchemy import ForeignKey, inspect
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.hybrid import hybrid_method, hybrid_property
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
-from sqlalchemy_utils import (  # type: ignore reportUnknownVariableType
-    create_database,  # type: ignore reportUnknownVariableType
-    database_exists,  # type: ignore reportUnknownVariableType
-    drop_database,  # type: ignore reportUnknownVariableType
+from sqlalchemy_utils import create_database  # type: ignore[reportUnknownVariableType]
+from sqlalchemy_utils import database_exists  # type: ignore[reportUnknownVariableType]
+from sqlalchemy_utils import (
+    drop_database,  # type: ignore[reportUnknownVariableType]; type: ignore[reportUnknownVariableType]
 )
 
 if TYPE_CHECKING:
@@ -214,12 +214,12 @@ class MyModel(Base):  # noqa: D101
     other_models: Mapped[list["OtherModel"]] = relationship(back_populates="my_model", uselist=True)
 
     @hybrid_property
-    def full_name(self):  # type: ignore reportUnknownParameterType # noqa: ANN201, D102
-        return self.name + "" + self.other_name  # type: ignore reportUnknownVariableType
+    def full_name(self):  # type: ignore[reportUnknownParameterType] # noqa: ANN201, D102
+        return self.name + "" + self.other_name  # type: ignore[reportUnknownVariableType]
 
     @hybrid_method
-    def get_full_name(self):  # type: ignore reportUnknownParameterType # noqa: ANN201, D102
-        return self.name + "" + self.other_name  # type: ignore reportUnknownVariableType
+    def get_full_name(self):  # type: ignore[reportUnknownParameterType] # noqa: ANN201, D102
+        return self.name + "" + self.other_name  # type: ignore[reportUnknownVariableType]
 
     def as_dict(self) -> dict[str, Any]:  # noqa: D102
         return {

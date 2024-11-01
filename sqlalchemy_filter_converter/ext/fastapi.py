@@ -7,7 +7,7 @@ from fastapi.params import Query
 from pydantic import BaseModel, Field, Json, ValidationError
 
 from sqlalchemy_filter_converter.converters import (
-    AdvancedOperatorFilterConverter,
+    AdvancedFilterConverter,
     DjangoLikeFilterConverter,
     SimpleFilterConverter,
 )
@@ -16,6 +16,7 @@ from sqlalchemy_filter_converter.types import AdvancedOperatorsLiteral
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
+    from sqlalchemy.orm.attributes import QueryableAttribute
     from sqlalchemy.orm.decl_api import DeclarativeBase
     from sqlalchemy.sql.elements import ColumnElement
 
@@ -59,13 +60,13 @@ def _convert_key_value_filters(filters: Any) -> list[dict[str, Any]]:  # noqa: A
     values_to_filter: list[dict[str, Any]] = [filters] if not isinstance(filters, list) else filters
     errors: list[dict[str, Any]] = []
     for idx, _filter in enumerate(values_to_filter):
-        if not isinstance(_filter, dict) or not all_dict_keys_are_str(_filter):  # type: ignore reportUnnecessaryIsInstance
+        if not isinstance(_filter, dict) or not all_dict_keys_are_str(_filter):  # type: ignore[reportUnnecessaryIsInstance]
             errors.append(
                 {
-                    'type': 'json error',
-                    'loc': ['json_element', str(idx)],
-                    'msg': 'incorrect filter - is not object.',
-                    'input': _filter,
+                    "type": "json error",
+                    "loc": ["json_element", str(idx)],
+                    "msg": "incorrect filter - is not object.",
+                    "input": _filter,
                 },
             )
 
@@ -80,9 +81,9 @@ def _convert_key_value_filters(filters: Any) -> list[dict[str, Any]]:  # noqa: A
 def get_advanced_filters(
     filters: Json[Any] | None = Query(
         None,
-        title='Filters',
+        title="Filters",
         description=(
-            'Filters with following format: '
+            "Filters with following format: "
             '``[{"field": "field_name", "value": anyValue, "operator": "operator"}]``.'
         ),
     ),
@@ -93,7 +94,7 @@ def get_advanced_filters(
         if isinstance(filters, list):
             return [
                 AdvancedFilterSchema.model_validate(_filter)
-                for _filter in filters  # type: ignore reportUnknownVariableType
+                for _filter in filters  # type: ignore[reportUnknownVariableType]
             ]
         if filters is None:
             return res
@@ -108,9 +109,9 @@ def get_advanced_filters(
 def get_simple_filters(
     filters: Json[Any] | None = Query(
         None,
-        title='Filters',
+        title="Filters",
         description=(
-            'Filters with ``{Key: Value}`` format, where ``Key`` - field of model to filter by '
+            "Filters with ``{Key: Value}`` format, where ``Key`` - field of model to filter by "
             '``Value`` - value to filter by. Example: ``{"id": 25, "name": "name"}``.'
         ),
     ),
@@ -122,13 +123,13 @@ def get_simple_filters(
 def get_django_filters(
     filters: Json[Any] | None = Query(
         None,
-        title='Фильтры',
+        title="Фильтры",
         description=(
-            'Filters with ``{Key: Value}`` format, where ``Key`` - field of model to filter by '
-            '``Value`` - value to filter by. Example: '
+            "Filters with ``{Key: Value}`` format, where ``Key`` - field of model to filter by "
+            "``Value`` - value to filter by. Example: "
             '``{"id__exact": 25, "datetime_field__year__exact": 1995}``.\n\n'
-            '``Attention!`` Django filters in current state does not support sub-lookups to '
-            'related models and will not support because of security issues.'
+            "``Attention!`` Django filters in current state does not support sub-lookups to "
+            "related models and will not support because of security issues."
         ),
     ),
 ) -> list[dict[str, Any]]:
@@ -143,7 +144,10 @@ def get_advanced_filter_dicts(
     return [_filter.model_dump() for _filter in filters]
 
 
-def advanced_converter_depends(model: "type[DeclarativeBase]") -> "GetSQLFiltersDepends":
+def advanced_converter_depends(
+    model: "type[DeclarativeBase]",
+    specific_column_mapping: "dict[str, QueryableAttribute[Any]] | None" = None,
+) -> "GetSQLFiltersDepends":
     """Dependency fabric for advanced filters convert.
 
     You need to call this function and pass result in ``Depends`` like this:
@@ -165,16 +169,26 @@ def advanced_converter_depends(model: "type[DeclarativeBase]") -> "GetSQLFilters
         ...
     ```
     """
+    if specific_column_mapping is None:  # pragma: no coverage
+        specific_column_mapping = {}
 
     def _get_filters(
         filters: list[dict[str, Any]] | None = Depends(get_advanced_filter_dicts),
     ) -> "Sequence[ColumnElement[bool]]":
-        return AdvancedOperatorFilterConverter.convert(model, filters)
+        return AdvancedFilterConverter(
+            specific_column_mapping=specific_column_mapping,
+        ).convert(
+            model,
+            filters,
+        )
 
     return _get_filters
 
 
-def simple_converter_depends(model: "type[DeclarativeBase]") -> "GetSQLFiltersDepends":
+def simple_converter_depends(
+    model: "type[DeclarativeBase]",
+    specific_column_mapping: "dict[str, QueryableAttribute[Any]] | None" = None,
+) -> "GetSQLFiltersDepends":
     """Dependency fabric for simple filters convert.
 
     You need to call this function and pass result in ``Depends`` like this:
@@ -196,16 +210,26 @@ def simple_converter_depends(model: "type[DeclarativeBase]") -> "GetSQLFiltersDe
         ...
     ```
     """
+    if specific_column_mapping is None:  # pragma: no coverage
+        specific_column_mapping = {}
 
     def _get_filters(
         filters: list[dict[str, Any]] | None = Depends(get_simple_filters),
     ) -> "Sequence[ColumnElement[bool]]":
-        return SimpleFilterConverter.convert(model, filters)
+        return SimpleFilterConverter(
+            specific_column_mapping=specific_column_mapping,
+        ).convert(
+            model,
+            filters,
+        )
 
     return _get_filters
 
 
-def django_converter_depends(model: "type[DeclarativeBase]") -> "GetSQLFiltersDepends":
+def django_converter_depends(
+    model: "type[DeclarativeBase]",
+    specific_column_mapping: "dict[str, QueryableAttribute[Any]] | None" = None,
+) -> "GetSQLFiltersDepends":
     """Dependency fabric for django filters convert.
 
     You need to call this function and pass result in ``Depends`` like this:
@@ -227,10 +251,17 @@ def django_converter_depends(model: "type[DeclarativeBase]") -> "GetSQLFiltersDe
         ...
     ```
     """
+    if specific_column_mapping is None:  # pragma: no coverage
+        specific_column_mapping = {}
 
     def _get_filters(
         filters: list[dict[str, Any]] | None = Depends(get_django_filters),
     ) -> "Sequence[ColumnElement[bool]]":
-        return DjangoLikeFilterConverter.convert(model, filters)
+        return DjangoLikeFilterConverter(
+            specific_column_mapping=specific_column_mapping,
+        ).convert(
+            model,
+            filters,
+        )
 
     return _get_filters

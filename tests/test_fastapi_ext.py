@@ -7,8 +7,10 @@ from fastapi.testclient import TestClient
 from sqlalchemy import ColumnElement, select
 
 from sqlalchemy_filter_converter.ext.fastapi import (
+    _convert_key_value_filters,  # type: ignore[reportPrivateUsage]
+)
+from sqlalchemy_filter_converter.ext.fastapi import (
     AdvancedFilterSchema,
-    _convert_key_value_filters,  # type: ignore reportPrivateUsage
     advanced_converter_depends,
     django_converter_depends,
     get_advanced_filter_dicts,
@@ -33,11 +35,11 @@ def app_with_filters():  # noqa: ANN201
         my_django_model_filter_depends = django_converter_depends(MyModel)
 
         @app.get("/x")
-        def _x(filters: list[AdvancedFilterSchema] = Depends(get_advanced_filters)):  # type: ignore reportUnusedFunction # noqa: ANN202
+        def _x(filters: list[AdvancedFilterSchema] = Depends(get_advanced_filters)):  # type: ignore[reportUnusedFunction] # noqa: ANN202
             return filters
 
         @app.get("/y")
-        def _y(filters: list[dict[str, Any]] = Depends(get_advanced_filter_dicts)):  # type: ignore reportUnusedFunction # noqa: ANN202
+        def _y(filters: list[dict[str, Any]] = Depends(get_advanced_filter_dicts)):  # type: ignore[reportUnusedFunction] # noqa: ANN202
             return filters
 
         @app.get("/z")
@@ -48,22 +50,22 @@ def app_with_filters():  # noqa: ANN201
             return [item.as_dict() for item in db_sync_session.scalars(stmt).all()]
 
         @app.get("/simple")
-        def _simple(filters: list[dict[str, Any]] = Depends(get_simple_filters)):  # type: ignore reportUnusedFunction # noqa: ANN202
+        def _simple(filters: list[dict[str, Any]] = Depends(get_simple_filters)):  # type: ignore[reportUnusedFunction] # noqa: ANN202
             return filters
 
         @app.get("/django")
-        def _django(filters: list[dict[str, Any]] = Depends(get_django_filters)):  # type: ignore reportUnusedFunction # noqa: ANN202
+        def _django(filters: list[dict[str, Any]] = Depends(get_django_filters)):  # type: ignore[reportUnusedFunction] # noqa: ANN202
             return filters
 
         @app.get("/simple-query")
-        def _simple_query(  # type: ignore reportUnusedFunction # noqa: ANN202
+        def _simple_query(  # type: ignore[reportUnusedFunction] # noqa: ANN202
             filters: Sequence[ColumnElement[bool]] = Depends(my_simple_model_filter_depends),
         ):
             stmt = select(MyModel).where(*filters)
             return [item.as_dict() for item in db_sync_session.scalars(stmt).all()]
 
         @app.get("/django-query")
-        def _django_query(  # type: ignore reportUnusedFunction # noqa: ANN202
+        def _django_query(  # type: ignore[reportUnusedFunction] # noqa: ANN202
             filters: Sequence[ColumnElement[bool]] = Depends(my_django_model_filter_depends),
         ):
             stmt = select(MyModel).where(*filters)
@@ -148,7 +150,7 @@ def test_advanced_converter_depends(
     assert response.status_code == status.HTTP_200_OK, response.json()
     response_list = response.json()
     assert isinstance(response_list, list)
-    assert len(response_list) == 1  # type: ignore reportUnknownArgumentType
+    assert len(response_list) == 1  # type: ignore[reportUnknownArgumentType]
     assert 'id' in response_list[0]
     assert response_list[0]['id'] == instance.id
 
@@ -249,7 +251,7 @@ def test_simple_converter_depends(
     assert response.status_code == status.HTTP_200_OK, response.json()
     response_list = response.json()
     assert isinstance(response_list, list)
-    assert len(response_list) == 1  # type: ignore reportUnknownArgumentType
+    assert len(response_list) == 1  # type: ignore[reportUnknownArgumentType]
     assert 'id' in response_list[0]
     assert response_list[0]['id'] == instance.id
 
@@ -270,7 +272,7 @@ def test_django_converter_depends(
     assert response.status_code == status.HTTP_200_OK, response.json()
     response_list = response.json()
     assert isinstance(response_list, list)
-    assert len(response_list) == 1  # type: ignore reportUnknownArgumentType
+    assert len(response_list) == 1  # type: ignore[reportUnknownArgumentType]
     assert 'id' in response_list[0]
     assert response_list[0]['id'] == instance.id
     response = app.get(
@@ -280,8 +282,8 @@ def test_django_converter_depends(
     assert response.status_code == status.HTTP_200_OK, response.json()
     response_list = response.json()
     assert isinstance(response_list, list)
-    assert len(response_list) == 2  # type: ignore reportUnknownArgumentType  # noqa: PLR2004
-    for ele in response_list:  # type: ignore reportUnknownArgumentType
+    assert len(response_list) == 2  # type: ignore[reportUnknownArgumentType]  # noqa: PLR2004
+    for ele in response_list:  # type: ignore[reportUnknownArgumentType]
         assert 'id' in ele
         assert ele['id'] in ids
 

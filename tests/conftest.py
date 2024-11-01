@@ -112,7 +112,7 @@ def db_sync_engine(db_sync_url: str) -> "Generator[Engine, None, None]":
         destroy_db(db_sync_url)
 
 
-@pytest_asyncio.fixture(scope="session")  # type: ignore reportUntypedFunctionDecorator
+@pytest_asyncio.fixture(scope="session")  # type: ignore[reportUntypedFunctionDecorator]
 async def db_async_engine(db_async_url: str) -> "AsyncGenerator[AsyncEngine, None]":
     """SQLAlchemy engine session-based fixture."""
     engine = create_async_engine(
@@ -165,7 +165,7 @@ def db_sync_session(
         yield session
 
 
-@pytest_asyncio.fixture()  # type: ignore reportUntypedFunctionDecorator
+@pytest_asyncio.fixture()  # type: ignore[reportUntypedFunctionDecorator]
 async def db_async_session(
     db_async_engine: "AsyncEngine",
     db_async_session_factory: "async_scoped_session[AsyncSession]",
@@ -306,7 +306,7 @@ def test_sync_app(
         mymodel_sync_factory(db_sync_session)
 
     @app.get("/")
-    def index():  # type: ignore reportUnusedFunction  # noqa: ANN202
+    def index():  # type: ignore[reportUnusedFunction]  # noqa: ANN202
         stmt = select(MyModel)
         items = db_sync_session.execute(stmt).scalars().all()
         return [{"id": item.id} for item in items]

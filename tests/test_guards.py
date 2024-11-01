@@ -2,7 +2,8 @@ from typing import Any
 
 import pytest
 
-from sqlalchemy_filter_converter import converters, guards
+from sqlalchemy_filter_converter import guards
+from sqlalchemy_filter_converter.lookups import ADVANCED_LOOKUP_MAPPING, DJANGO_LIKE_LOOKUP_MAPPING
 
 any_value = object()
 
@@ -28,11 +29,11 @@ def test_is_dict_simple_filter_dict(
 @pytest.mark.parametrize(
     ("_dct", "expected_result"),
     [
-        (converters.SimpleFilterConverter.lookup_mapping, False),
-        (converters.AdvancedOperatorFilterConverter.lookup_mapping, False),
-        (converters.DjangoLikeFilterConverter.lookup_mapping, True),
+        (ADVANCED_LOOKUP_MAPPING, False),
+        (DJANGO_LIKE_LOOKUP_MAPPING, True),
         ({"abc": (1, 2)}, False),
         ({"abc": (1, 2, 3)}, False),
+        ({}, False),
     ],
 )
 def test_has_nested_lookups(

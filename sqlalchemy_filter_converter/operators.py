@@ -10,7 +10,7 @@ Contains:
 """
 
 import datetime
-from typing import TYPE_CHECKING, Any, Protocol, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from sqlalchemy import Date, Time, cast, extract, false, func
 from sqlalchemy.orm import QueryableAttribute
@@ -21,17 +21,6 @@ if TYPE_CHECKING:
     from sqlalchemy.sql.elements import ColumnElement
 
     T = TypeVar("T")
-
-
-class OperatorFunctionProtocol(Protocol):  # noqa: D101 pragma: no cover
-    def __call__(  # noqa: D102
-        self,
-        a: Any,  # noqa: ANN401
-        b: Any,  # noqa: ANN401
-        *,
-        subproduct_use: bool = False,
-    ) -> Any:  # noqa: ANN401
-        ...
 
 
 # =================================================================
